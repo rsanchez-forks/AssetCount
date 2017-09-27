@@ -7,14 +7,31 @@ namespace Craft;
 class AssetCount_ResetAction extends BaseElementAction
 {
     /**
+     * @var string
+     */
+    protected $name = 'Reset Asset Count';
+
+    /**
      * Get name
 	 *
 	 * @return string
      */
 	public function getName()
 	{
-		return Craft::t('Reset Asset Count');
+		return Craft::t($this->name);
 	}
+
+    /**
+     * Set name
+     *
+     * @param  string $name
+     *
+     * @return void
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
 
     /**
      * Is destructive

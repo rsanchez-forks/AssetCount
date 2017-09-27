@@ -28,7 +28,9 @@ class AssetCountPlugin extends BasePlugin
         return array(
             'showCountOnAssetIndex' => array(AttributeType::Bool, 'default' => 0),
             'ignoreLoggedInUsers' => array(AttributeType::Bool, 'default' => 0),
-            'ignoreIpAddresses' => array(AttributeType::Mixed, 'default' => '')
+            'ignoreIpAddresses' => array(AttributeType::Mixed, 'default' => ''),
+            'countLabel' => array(AttributeType::String, 'default' => 'Count'),
+            'resetLabel' => array(AttributeType::String, 'default' => 'Reset Asset Count'),
         );
     }
 
@@ -44,14 +46,47 @@ class AssetCountPlugin extends BasePlugin
         return true;
     }
 
+    public function init()
+    {
+        parent::init();
+
+        if (!craft()->isConsole() && craft()->request->isCpRequest()) {
+            craft()->on('elements.onBeforeBuildElementsQuery', function ($event) {
+                $query = $event->params['query'];
+
+                $criteria = $event->params['criteria'];
+
+                $elementType = $criteria->getElementType();
+
+                if ($elementType instanceof AssetElementType) {
+                    $query->select('assetcount.count');
+
+                    $query->leftJoin('assetcount assetcount', 'assetcount.assetId = elements.id');
+                }
+            });
+        }
+    }
+
+    public function defineAdditionalAssetTableAttributes()
+    {
+        $attributes = array();
+
+        if ($this->getSettings()->showCountOnAssetIndex)
+        {
+            $attributes['count'] = Craft::t($this->getSettings()->countLabel);
+        }
+
+        return $attributes;
+    }
+
 	// Hooks
 	// =========================================================================
 
-    public function modifyAssetTableAttributes(&$attributes, $source)
+    public function modifyAssetSortableAttributes(&$attributes)
     {
         if ($this->getSettings()->showCountOnAssetIndex)
         {
-            $attributes['count'] = Craft::t('Count');
+            $attributes['count'] = Craft::t($this->getSettings()->countLabel);
         }
     }
 
@@ -67,7 +102,13 @@ class AssetCountPlugin extends BasePlugin
     {
         if ($this->getSettings()->showCountOnAssetIndex)
         {
-            return array('AssetCount_Reset');
+            Craft::import('plugins.assetcount.elementactions.AssetCount_ResetAction');
+
+            $action = new AssetCount_ResetAction();
+
+            $action->setName($this->getSettings()->resetLabel);
+
+            return array($action);
         }
     }
 }

@@ -24,3 +24,19 @@
 	value: settings.ignoreIpAddresses,
 	rows: 4,
 }) }}
+
+
+{{ forms.textField({
+	label: "Count Label"|t,
+	instructions: "Label for count column on the asset index pages"|t,
+	name: 'countLabel',
+	value: settings.countLabel ?: 'Count',
+}) }}
+
+
+{{ forms.textField({
+	label: "Reset Label"|t,
+	instructions: "Label for reset asset count button on the asset index pages"|t,
+	name: 'resetLabel',
+	value: settings.resetLabel ?: 'Reset Asset Count',
+}) }}
